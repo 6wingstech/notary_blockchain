@@ -1,8 +1,8 @@
 pragma solidity ^0.4.23;
 
-import 'openzeppelin-solidity/contracts/token/ERC721/ERC721.sol';
+import './ERC721TOKEN.sol';
 
-contract StarNotary is ERC721 { 
+contract StarNotary is ERC721Token { 
 
     struct Star { 
         string name;
@@ -12,47 +12,47 @@ contract StarNotary is ERC721 {
         string mag;
     }
 
-    mapping(address => uint256) public addressToStar; 
-    mapping(uint256 => address) public tokenToAddress; 
+    struct registeredCoordinates {
+    	bool exists;
+    }
+
     mapping(uint256 => uint256) public starsForSale;
     mapping(uint256 => Star) public tokenIdToStarInfo; 
-    mapping(uint256 => address) public starApprovals;
-    mapping(uint256 => uint256) public coordinatesToStarId;
+    mapping(uint256 => registeredCoordinates) public checkCoordinates;
 
-    // Keep track of all registered stars
-    Star[] public stars;
+    uint[] stars;
 
     function createStar(string _name, string _starStory, string _ra, string _dec, string _mag) public returns (uint) { 
         Star memory newStar = Star(_name, _starStory, _ra, _dec, _mag);
-        uint coordinates = uint(keccak256(_ra, _dec, _mag));
-        // if(coordinatesToStarId[coordinates].isValue) throw;
-        address ownerAddress = msg.sender;
+        registeredCoordinates memory newStarRegistered = registeredCoordinates(true);
+        uint coordinates = uint(keccak256(abi.encodePacked(_ra, _dec, _mag)));
+        require(!checkCoordinates[coordinates].exists, "Star already registered");
+
         uint _tokenId = stars.length;
-        coordinatesToStarId[coordinates] = _tokenId;
         tokenIdToStarInfo[_tokenId] = newStar;
-        addressToStar[ownerAddress] = _tokenId;
+        checkCoordinates[coordinates] = newStarRegistered;
+        stars.push(coordinates);
 
-        stars.push(newStar);
-
-        _mint(msg.sender, _tokenId);
+        ERC721Token.mint(msg.sender, _tokenId);
 
         return _tokenId;
     }
 
     function putStarUpForSale(uint256 _tokenId, uint256 _price) public { 
-        require(this.ownerOf(_tokenId) == msg.sender);
+        require(this.ownerOf(_tokenId) == msg.sender, "Only the owner of the star can sell it.");
         starsForSale[_tokenId] = _price;
     }
 
     function buyStar(uint256 _tokenId) public payable { 
-        require(starsForSale[_tokenId] > 0);
+        require(starsForSale[_tokenId] > 0, "This star is not for sale.");
 
         uint256 starCost = starsForSale[_tokenId];
         address starOwner = this.ownerOf(_tokenId);
-        require(msg.value >= starCost);
 
-        _removeTokenFrom(starOwner, _tokenId);
-        _addTokenTo(msg.sender, _tokenId);
+        require(msg.value >= starCost, "Insufficient funds.");
+
+        ERC721Token.removeTokenFrom(starOwner, _tokenId);
+        ERC721Token.addTokenTo(msg.sender, _tokenId);
 
         starOwner.transfer(starCost);
 
@@ -60,46 +60,4 @@ contract StarNotary is ERC721 {
             msg.sender.transfer(msg.value - starCost);
         }
     }
-
-    function checkIfStarExists(uint256 _coordinates) private returns (bool) {
-
-    }
-
-    function approve(address _approved, uint256 _tokenId) external payable {
-    	starApprovals[_tokenId] = _approved;
-    	emit Approval(msg.sender, _approved, _tokenId);
-    }
-
-    function safeTransferFrom(address _from, address _to, uint256 _tokenId) private {
-    	require(starApprovals[_tokenId] == msg.sender);
-    	address owner = ownerOf(_tokenId);
-        tokenToAddress[_tokenId] = _to;
-        Transfer(_from, _to, _tokenId);
-    }
-
-    function SetApprovalForAll(address _operator, bool _approved) external {
-
-    	emit ApprovalForAll(msg.sender, _operator, _approved);
-    }
-
-    function getApproved(uint256 _tokenId) public view returns (address) {
-
-    }
-
-    function isApprovedForAll(address _owner, address _operator) public view returns (bool) {
-
-    }
-
-    function ownerOf(uint256 _tokenId) public view returns (address _owner) {
-    	return tokenToAddress[_tokenId];
-    }
-
-    function starsForSale() public view returns ({
-
-    }
-
-    function tokenIdToStarInfo(uint256 _tokenId) public view returns (string) {
-    	return tokenIdToStarInfo[_tokenId];
-    }
-
 }
