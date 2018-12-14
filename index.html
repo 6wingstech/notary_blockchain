@@ -470,6 +470,7 @@
             const starNotary = StarNotary.at('0xbd067d6c1c036c8acabc55e2c31b66dbf49355c1')
             
             function claimButtonClicked() { 
+                document.getElementById("result").value = "";
                 web3.eth.getAccounts(function(error, accounts) { 
                     if (error) { 
                         alert(error)
@@ -503,6 +504,7 @@
                 })
             }
             function queryButtonClicked(){
+                document.getElementById("result").value = "";
                 web3.eth.getAccounts(function(error, accounts){
                     if (error) {
                         alert(error)
