@@ -22,9 +22,6 @@ contract('ERC721Token', accounts => {
             assert.equal(await this.contract.ownerOf(tokenId), user1)
         })
 
-        it('balanceOf user1 increases', async function () { 
-           assert.equal(await this.contract.balanceOf(user1), 1)
-        })
     })
 
     describe('can transfer token', () => { 
