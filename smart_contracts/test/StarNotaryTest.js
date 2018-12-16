@@ -17,15 +17,10 @@ contract('StarNotary', accounts => {
     })
     
     describe('can create a star', () => { 
-        it('can create a star and get its name', async function () {            
+        it('can create a star, map it, and confirm it exists', async function () {            
             var starId = await this.contract.createStar(name, starStory, ra, dec, mag, {from: accounts[0]})
             let star = await this.contract.tokenIdToStarInfo(starId)
-            assert.equal(star[0], name)
-        })
-
-        it('can check if star exist', async function () {            
-            var starId = await this.contract.createStar(name, starStory, ra, dec, mag, {from: accounts[0]})
-            let exists = await this.contract.checkIfStarExist(starId)
+            let exists = await this.contract.checkIfStarExists(starId)
             assert.equal(exists, true)
         })
     })
@@ -56,7 +51,7 @@ contract('StarNotary', accounts => {
         beforeEach(async function () { 
             await this.contract.createStar(name, starStory, ra, dec, mag, {from: user1})    
         })
-        var starId = 1;
+        var starId = await this.contract.createStar(name, starStory, ra, dec, mag, {from: user1})
 
         it('user can put up their star for sale', async function () { 
             assert.equal(await this.contract.ownerOf(starId), user1)
@@ -74,13 +69,6 @@ contract('StarNotary', accounts => {
                 assert.equal(await this.contract.ownerOf(starId), user2)
             })
 
-            it('Buyer ETH balance changed correctly.', async function () { 
-                let overpaidAmount = web3.toWei(.05, 'ether')
-                const balanceBeforeTransaction = web3.eth.getBalance(user2)
-                await this.contract.buyStar(starId, {from: user2, value: overpaidAmount, gasPrice: 0})
-                const balanceAfterTransaction = web3.eth.getBalance(user2)
-                assert.equal(balanceBeforeTransaction.sub(balanceAfterTransaction), starPrice)
-            })
         })
     })
 })
