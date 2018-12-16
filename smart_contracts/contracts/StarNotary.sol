@@ -60,4 +60,13 @@ contract StarNotary is ERC721Token {
             msg.sender.transfer(msg.value - starCost);
         }
     }
+
+    function checkIfStarExists(uint256 _tokenId) public view returns (bool) {
+        if (bytes(tokenIdToStarInfo[_tokenId].name).length != 0) {
+            return true;
+        }
+        return false;
+    }
+
+
 }
