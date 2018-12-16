@@ -66,5 +66,4 @@ contract ERC721Token is ERC721 {
         tokenToOwner[_tokenId] = _from;
         ownerToBalance[_from] = ownerToBalance[_from].add(1);
     }
-
 }
